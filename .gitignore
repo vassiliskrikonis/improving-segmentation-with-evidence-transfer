@@ -1,3 +1,5 @@
 datasets/skyline12/data
 **/__pycache__
 **/.ipynb_checkpoints/
+temp
+wandb
