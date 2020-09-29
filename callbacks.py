@@ -33,7 +33,8 @@ class WandbLogEvidencePredictions(tf.keras.callbacks.Callback):
                 'class_labels': self.class_labels
             },
             'evidence': {
-                'mask_data': pred_v.numpy().squeeze()
+                'mask_data': pred_v.numpy().argmax(-1),
+                'class_labels': {0: 'nil', 1: 'scribble'}
             }
         }) for img, pred_y, pred_v in zip(x, *preds)]
         wandb.log({'predictions': wandb_images}, epoch)
