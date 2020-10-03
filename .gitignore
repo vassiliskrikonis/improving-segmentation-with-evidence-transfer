@@ -3,3 +3,4 @@ datasets/skyline12/data
 **/.ipynb_checkpoints/
 temp
 wandb
+.DS_Store
