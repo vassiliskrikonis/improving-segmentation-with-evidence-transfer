@@ -4,6 +4,7 @@ import numpy as np
 import scipy.io as sio
 import imgaug as ia
 import imgaug.augmenters as iaa
+import matplotlib.pyplot as plt
 
 
 _augmentor = iaa.Sequential([
@@ -76,3 +77,13 @@ class Skyline12:
                 y_max = min(shape[0], y + stroke_size)
                 mask[y_min:y_max, x_min:x_max] = idx
         return mask
+
+    @staticmethod
+    def show_sample(image, masks=[], from_tensors=False):
+        fig, axes = plt.subplots(1, 1 + len(masks))
+        fig.set_size_inches((10, 10))
+        axes[0].imshow(image)
+        for i, mask in enumerate(masks):
+            if from_tensors:
+                mask = mask.numpy()
+            axes[1 + i].imshow(mask.argmax(-1))
