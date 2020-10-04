@@ -16,7 +16,9 @@ class WandbLogPredictions(tf.keras.callbacks.Callback):
                 'class_labels': self.class_labels
             },
         }) for img, pred in zip(x, preds)]
-        wandb.log({'predictions': wandb_images}, epoch)
+        # commit == False because WandbCallback doesn't use epochs as steps
+        # important! just make sure to use this callback before WandbCallback
+        wandb.log({'predictions': wandb_images}, commit=False)
 
 
 class WandbLogEvidencePredictions(tf.keras.callbacks.Callback):
@@ -37,4 +39,6 @@ class WandbLogEvidencePredictions(tf.keras.callbacks.Callback):
                 'class_labels': {0: 'nil', 1: 'scribble'}
             }
         }) for img, pred_y, pred_v in zip(x, *preds)]
-        wandb.log({'predictions': wandb_images}, epoch)
+        # commit == False because WandbCallback doesn't use epochs as steps
+        # important! just make sure to use this callback before WandbCallback
+        wandb.log({'predictions': wandb_images}, commit=False)
