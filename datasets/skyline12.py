@@ -142,11 +142,18 @@ class Skyline12:
 
     @staticmethod
     def show_sample(image, masks=[], from_tensors=False):
-        fig, axes = plt.subplots(1, 1 + len(masks))
+        rows = 1
+        cols = 1 + len(masks)
+        fig, axes = plt.subplots(rows, cols)
         fig.set_size_inches((10, 10))
-        axes[0].imshow(image)
+        if rows * cols == 1:
+            axes.imshow(image)
+        else:
+            axes[0].imshow(image)
         for i, mask in enumerate(masks):
             if from_tensors:
                 mask = mask.numpy()
-            axes[1 + i].imshow(mask.argmax(-1))
+            if len(mask.shape) > 2:
+                mask = mask.argmax(-1)
+            axes[1 + i].imshow(mask)
 
