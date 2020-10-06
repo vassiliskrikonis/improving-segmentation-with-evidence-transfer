@@ -44,8 +44,9 @@ class WandbLogEvidencePredictions(tf.keras.callbacks.Callback):
 
 
 class MyWandbCallback(WandbCallback):
-    def __init__(self, val_data=None, *args, **kwargs):
+    def __init__(self, include='xyz', val_data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.include = include
         self.val_data = val_data
 
     def _log_images(self, num_images=36):
@@ -78,6 +79,8 @@ class MyWandbCallback(WandbCallback):
             [predictions_y, predictions_z] = self.model.predict(np.stack(test_data), batch_size=1)
             self.model.reset_states()
         else:
+            if not hasattr(self, '_prediction_batch_size'):
+                self._prediction_batch_size = 1
             [predictions_y, predictions_z] = self.model.predict(
                 np.stack(test_data), batch_size=self._prediction_batch_size
             )
@@ -93,7 +96,7 @@ class MyWandbCallback(WandbCallback):
         reference_image_data_y = self._masks_to_pixels(np.stack(test_output_y))
         reference_image_data_z = self._masks_to_pixels(np.stack(test_output_z))
         input_images = [
-            wandb.Image(data, grouping=5)
+            wandb.Image(data, grouping=len(self.include))
             for i, data in enumerate(input_image_data)
         ]
         output_images_y = [
@@ -108,12 +111,15 @@ class MyWandbCallback(WandbCallback):
         reference_images_z = [
             wandb.Image(data) for i, data in enumerate(reference_image_data_z)
         ]
-        return list(
-            chain.from_iterable(
-                zip(input_images,
-                    output_images_y, 
-                    output_images_z,
-                    reference_images_y,
-                    reference_images_z)
-            )
-        )
+        for_logging = []
+        if 'x' in self.include:
+            for_logging.append(input_images)
+        if 'y' in self.include:
+            for_logging.append(output_images_y)
+        if 'z' in self.include:
+            for_logging.append(output_images_z)
+        if 'y' in self.include:
+            for_logging.append(reference_images_y)
+        if 'z' in self.include:
+            for_logging.append(reference_images_z)
+        return list(chain.from_iterable(zip(*for_logging)))
