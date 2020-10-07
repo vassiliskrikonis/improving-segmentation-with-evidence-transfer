@@ -50,8 +50,9 @@ def preprocess(x, y, z, augment_fn):
     x /= 255.0
     y[y >= NUM_CLASSES - 1] = NUM_CLASSES - 1
     y = tf.keras.utils.to_categorical(y, num_classes=NUM_CLASSES)
-    z[z > 0] = 1
-    z = tf.keras.utils.to_categorical(z, num_classes=2)
+    z = z.astype('float32')
+    z[z > 0] = 1.0
+    z = np.expand_dims(z, -1)
     return x, y, z
 
 
@@ -136,7 +137,7 @@ class Skyline12:
             (
                 tf.TensorShape([512, 512, 3]),
                 tf.TensorShape([512, 512, NUM_CLASSES]),
-                tf.TensorShape([512, 512, 2])
+                tf.TensorShape([512, 512, 1])
             )
         )
 
@@ -153,7 +154,9 @@ class Skyline12:
         for i, mask in enumerate(masks):
             if from_tensors:
                 mask = mask.numpy()
-            if len(mask.shape) > 2:
+            if len(mask.shape) > 2 and mask.shape[-1] == 1:
+                mask = mask.squeeze(-1)
+            else:
                 mask = mask.argmax(-1)
             axes[1 + i].imshow(mask)
 
