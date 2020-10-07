@@ -132,7 +132,7 @@ class Skyline12:
             (
                 tf.dtypes.float32,
                 tf.dtypes.uint8,
-                tf.dtypes.uint8
+                tf.dtypes.float32
             ),
             (
                 tf.TensorShape([512, 512, 3]),
