@@ -95,8 +95,9 @@ class MyWandbCallback(WandbCallback):
         output_image_data_z = self._masks_to_pixels(predictions_z)
         reference_image_data_y = self._masks_to_pixels(np.stack(test_output_y))
         reference_image_data_z = self._masks_to_pixels(np.stack(test_output_z))
+        _include = self.include.replace('y', 'yy').replace('z', 'zz')
         input_images = [
-            wandb.Image(data, grouping=len(self.include))
+            wandb.Image(data, grouping=len(_include))
             for i, data in enumerate(input_image_data)
         ]
         output_images_y = [
@@ -112,14 +113,14 @@ class MyWandbCallback(WandbCallback):
             wandb.Image(data) for i, data in enumerate(reference_image_data_z)
         ]
         for_logging = []
-        if 'x' in self.include:
+        if 'x' in _include:
             for_logging.append(input_images)
-        if 'y' in self.include:
+        if 'y' in _include:
             for_logging.append(output_images_y)
-        if 'z' in self.include:
+        if 'z' in _include:
             for_logging.append(output_images_z)
-        if 'y' in self.include:
+        if 'y' in _include:
             for_logging.append(reference_images_y)
-        if 'z' in self.include:
+        if 'z' in _include:
             for_logging.append(reference_images_z)
         return list(chain.from_iterable(zip(*for_logging)))
