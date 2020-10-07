@@ -1,5 +1,9 @@
+imageio
 imgaug
 matplotlib
-opencv-python
+numpy
+scikit-image
 scikit-learn
+scipy
+wandb
 pydot
