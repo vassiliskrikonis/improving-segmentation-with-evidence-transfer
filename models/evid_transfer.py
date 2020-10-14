@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dense, Reshape, Flatten, Input, LeakyReLU, Conv2DTranspose
 from tensorflow.keras.losses import categorical_crossentropy, binary_crossentropy
-import ipdb
 
 
 class EvidenceTransferModel(tf.keras.Model):
@@ -22,9 +21,12 @@ class EvidenceTransferModel(tf.keras.Model):
         self.optimizer.apply_gradients(zip(unet_grads, unet_vars))
 
         # update Q weights w.r.t combined loss
-        q_vars = self.get_layer('Q').trainable_variables
-        q_grads = q_tape.gradient(loss, q_vars)
-        self.optimizer.apply_gradients(zip(q_grads, q_vars))
+        q_plus_intermid_vars = [
+            *self.get_layer('Unet_intermid').trainable_variables,
+            *self.get_layer('Q').trainable_variables
+        ]
+        q_grads = q_tape.gradient(loss, q_plus_intermid_vars)
+        self.optimizer.apply_gradients(zip(q_grads, q_plus_intermid_vars))
 
         self.compiled_metrics.update_state([y, z], [y_pred, z_pred])
         return {'loss': loss, **{m.name: m.result() for m in self.metrics}}
@@ -41,8 +43,8 @@ class EvidenceTransferModel(tf.keras.Model):
 
 def create_q_model(config, input_shape=(512, 512, 64)):
     v_in = Input(shape=input_shape)
-#     v = Conv2D(input_shape[-1], (3, 3), strides=(1, 1), padding='same', activation='relu')(v_in)
-    v = Conv2D(1, (3, 3), strides=(1, 1), padding='same', activation='relu')(v_in)
+    v = Conv2D(input_shape[-1], (3, 3), strides=(1, 1), padding='same', activation='relu')(v_in)
+    v = Conv2D(1, (1, 1), strides=(1, 1), padding='same')(v)
     model = tf.keras.Model(inputs=v_in, outputs=v, name='Q')
     print(model.summary())
     return model
