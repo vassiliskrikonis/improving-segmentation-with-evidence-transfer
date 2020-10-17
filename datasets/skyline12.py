@@ -10,19 +10,16 @@ from sklearn.model_selection import train_test_split
 from functools import partial
 
 
-_augmentor = iaa.Sequential([
-    iaa.MultiplyBrightness((0.7, 1.5)),
-    iaa.MultiplySaturation((0.0, 2.0)),
-    iaa.GammaContrast((0.2, 1.4)),
-    iaa.Sometimes(1.0, iaa.Crop(percent=(0.1, 0.3))),
-    iaa.HorizontalFlip(0.5)
-], random_order=True)
-
-
-def create_augment_fn(augmentor=_augmentor, resize_size=512):
-    ia.random.seed(42)
+def create_augment_fn(resize_size=512, random_state=42):
+    ia.random.seed(random_state)
     augmentor = iaa.Sequential([
-        augmentor,
+        iaa.Sequential([
+            iaa.MultiplyBrightness((0.7, 1.5)),
+            iaa.MultiplySaturation((0.0, 2.0)),
+            iaa.GammaContrast((0.2, 1.4)),
+            iaa.Sometimes(1.0, iaa.Crop(percent=(0.1, 0.3))),
+            iaa.HorizontalFlip(0.5)
+        ], random_order=True),
         iaa.Resize(resize_size)
     ])
 
@@ -63,7 +60,6 @@ class Skyline12:
             self._images, train_size=100, random_state=random_state)
         self._train_set, self._validation_set = train_test_split(
             self._train_set, train_size=0.8, random_state=random_state + 1)
-        self._augmentor = _augmentor
 
     def __len__(self):
         return len(self._images)
@@ -95,7 +91,7 @@ class Skyline12:
                 mask[y_min:y_max, x_min:x_max] = idx
         return mask
 
-    def as_tf_dataset(self, folds=2, subset=None, cache_dir=None):
+    def as_tf_dataset(self, folds=2, subset=None, keep_individual=False, cache_dir=None):
         """
         Returns Skyline12 as a tf.data.Dataset.
         Can specify which subset (training, validation, test)
@@ -109,12 +105,12 @@ class Skyline12:
         elif subset == 'test':
             samples = self._test_set
 
-        augment = create_augment_fn(self._augmentor)
+        augment = create_augment_fn(random_state=self._random_state)
 
         def ds_gen(sample_set, folds):
             for _ in range(folds):
                 for x, y, z in (self._get_from_path(p) for p in sample_set):
-                    yield self.preprocess(x, y, z, augment)
+                    yield self.preprocess(x, y, z, augment, keep_individual)
 
         ds = tf.data.Dataset.from_generator(
             partial(ds_gen, samples, folds),
@@ -131,18 +127,20 @@ class Skyline12:
         )
         if cache_dir:
             cache = Path(cache_dir) / \
-                f'{subset if subset else "all"}_folds{folds}'
+                f'{subset if subset else "all"}_folds{folds}_{"squashed" if not keep_individual else ""}'
             ds = ds.cache(cache)
         return ds
 
-    def preprocess(self, x, y, z, augment_fn):
+    def preprocess(self, x, y, z, augment_fn, keep_individual=False):
         x, y, z = augment_fn(x, y, z)
         x = x.astype('float32')
         x /= 255.0
-        y[y >= self._NUM_CLASSES - 1] = self._NUM_CLASSES - 1
+        if not keep_individual:
+            y[y >= self._NUM_CLASSES - 1] = self._NUM_CLASSES - 1
         y = tf.keras.utils.to_categorical(y, num_classes=self._NUM_CLASSES)
         z = z.astype('float32')
-        z[z > 0] = 1.0
+        if not keep_individual:
+            z[z > 0] = 1.0
         z = np.expand_dims(z, -1)
         return x, y, z
 
