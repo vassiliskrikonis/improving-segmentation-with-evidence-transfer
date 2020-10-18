@@ -5,3 +5,4 @@ imgaug
 matplotlib
 tensorflow
 pydot
+wandb

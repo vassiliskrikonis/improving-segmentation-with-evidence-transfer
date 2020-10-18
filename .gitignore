@@ -3,3 +3,4 @@ datasets/skyline12/data
 .DS_Store
 .ipynb_checkpoints
 logs
+wandb
