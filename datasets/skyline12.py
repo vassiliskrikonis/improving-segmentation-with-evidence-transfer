@@ -154,7 +154,7 @@ class Skyline12:
         rows = 1
         cols = 1 + len(masks)
         fig, axes = plt.subplots(rows, cols)
-        fig.set_size_inches((10, 10))
+        fig.set_size_inches((10, 4))
         if rows * cols == 1:
             axes.imshow(image)
         else:
@@ -171,3 +171,4 @@ class Skyline12:
             else:
                 mask = np.expand_dims(mask, -1)
             axes[1 + i].imshow(mask)
+        return fig
