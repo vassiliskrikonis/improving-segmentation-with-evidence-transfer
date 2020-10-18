@@ -91,7 +91,9 @@ class Skyline12:
                 mask[y_min:y_max, x_min:x_max] = idx
         return mask
 
-    def as_tf_dataset(self, folds=2, subset=None, keep_individual=False, cache_dir=None):
+    def as_tf_dataset(
+        self, folds=2, subset=None, keep_individual=False, cache_dir=None
+    ):
         """
         Returns Skyline12 as a tf.data.Dataset.
         Can specify which subset (training, validation, test)
@@ -126,9 +128,12 @@ class Skyline12:
             )
         )
         if cache_dir:
-            cache = Path(cache_dir) / \
-                f'{subset if subset else "all"}_folds{folds}_{"squashed" if not keep_individual else ""}'
-            ds = ds.cache(cache)
+            cache = Path(cache_dir) / (
+                f'{subset if subset else "all"}'
+                f'_folds{folds}'
+                f'_{"squashed" if not keep_individual else ""}'
+            )
+            ds = ds.cache(str(cache))
         return ds
 
     def preprocess(self, x, y, z, augment_fn, keep_individual=False):

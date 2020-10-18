@@ -4,3 +4,4 @@ scipy
 imgaug
 matplotlib
 tensorflow
+pydot
