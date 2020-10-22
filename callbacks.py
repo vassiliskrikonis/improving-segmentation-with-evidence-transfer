@@ -43,3 +43,23 @@ class LogImagesWandb(tf.keras.callbacks.Callback):
             figs.append(fig)
         wandb.log(
             {'predictions': [wandb.Image(fig) for fig in figs]}, step=epoch)
+
+
+class LogEviTRAMImagesWandb(tf.keras.callbacks.Callback):
+    def __init__(self, pred_data):
+        self.pred_data = pred_data
+
+    def on_epoch_end(self, epoch, logs=None):
+        xs, [ys, zs] = self.pred_data
+        preds = self.model(xs, training=False)
+        figs = []
+        for x, y, z, pred_y, pred_z in zip(xs, ys, zs, *preds):
+            fig = Skyline12.show_sample(
+                x, [y, z, pred_y, pred_z], from_tensors=True)
+            fig = plot_to_image(fig)
+            # remove the batch dimensions added in plot_to_image, since
+            # we add multiple images after all
+            fig = tf.squeeze(fig, axis=0)
+            figs.append(fig)
+        wandb.log(
+            {'predictions': [wandb.Image(fig) for fig in figs]}, step=epoch)

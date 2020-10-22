@@ -35,7 +35,8 @@ class EvidenceTransferModel(tf.keras.Model):
 def create_evidence_transfer_model(
     unet: tf.keras.Model,
     q_model,
-    connecting_layer_name
+    connecting_layer_name,
+    loss_lambda,
 ):
     connecting_layer = unet.get_layer(connecting_layer_name)
 
@@ -59,6 +60,6 @@ def create_evidence_transfer_model(
         [x, v],
         unet_loss=tf.keras.losses.categorical_crossentropy,
         q_loss=tf.keras.losses.binary_crossentropy,
-        loss_lambda=1.5,
+        loss_lambda=loss_lambda,
         name='EviTRAM'
     )
