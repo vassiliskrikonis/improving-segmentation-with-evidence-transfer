@@ -56,10 +56,10 @@ def _expanding_block(num_filters, kernel_size, input, skip):
     return x
 
 
-def create_unet():
+def create_unet(num_classes=5, output_activation='softmax'):
     KERNEL_SIZE = (3, 3)
 
-    img = Input(shape=(512, 512, 3), name='input')
+    img = Input(shape=(None, None, 3), name='input')
 
     pool1, skip1 = _contracting_block(64, KERNEL_SIZE, img)
     pool2, skip2 = _contracting_block(128, KERNEL_SIZE, pool1)
@@ -89,13 +89,12 @@ def create_unet():
     up2 = _expanding_block(128, KERNEL_SIZE, up3, skip2)
     up1 = _expanding_block(64, KERNEL_SIZE, up2, skip1)
 
-    num_classes = 5
     out = Conv2D(
         num_classes,
         (1, 1),
         padding='same',
         kernel_initializer='he_normal',
-        activation='softmax',
+        activation=output_activation,
         name='pixel_classifier'
     )(up1)
 
