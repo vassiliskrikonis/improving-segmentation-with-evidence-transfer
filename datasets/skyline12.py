@@ -107,9 +107,8 @@ class Skyline12:
         elif subset == 'test':
             samples = self._test_set
 
-        augment = create_augment_fn(random_state=self._random_state)
-
         def ds_gen(sample_set, folds):
+            augment = create_augment_fn(random_state=self._random_state)
             for _ in range(folds):
                 for x, y, z in (self._get_from_path(p) for p in sample_set):
                     yield self.preprocess(x, y, z, augment, keep_individual)
