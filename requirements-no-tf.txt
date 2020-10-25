@@ -4,6 +4,5 @@ scipy
 sklearn
 imgaug
 matplotlib
-tensorflow
 pydot
 wandb
