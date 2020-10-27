@@ -20,7 +20,12 @@ class EvidenceTransferModel(tf.keras.Model):
         grads = tape.gradient(loss, self.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
         self.compiled_metrics.update_state([y, v], [y_pred, v_pred])
-        return {'loss': loss, **{m.name: m.result() for m in self.metrics}}
+        return {
+            'loss': loss,
+            'Q_loss': q_loss,
+            'Unet_loss': unet_loss,
+            **{m.name: m.result() for m in self.metrics}
+        }
 
     def test_step(self, data):
         x, [y, v] = data
@@ -29,7 +34,12 @@ class EvidenceTransferModel(tf.keras.Model):
         q_loss = tf.reduce_mean(self.q_loss(v, v_pred))
         loss = unet_loss + self.loss_lambda * q_loss
         self.compiled_metrics.update_state([y, v], [y_pred, v_pred])
-        return {'loss': loss, **{m.name: m.result() for m in self.metrics}}
+        return {
+            'loss': loss,
+            'Q_loss': q_loss,
+            'Unet_loss': unet_loss,
+            **{m.name: m.result() for m in self.metrics}
+        }
 
 
 def create_evidence_transfer_model(
